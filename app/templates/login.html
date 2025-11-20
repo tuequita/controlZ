@@ -103,8 +103,8 @@
 
             if(response.ok){
                 message.style.color = 'green';
-                message.textContent = 'Login exitoso! Token: ' + result.access_token;
                 localStorage.setItem('token', result.access_token);
+                window.location.href = "/"; 
             } else {
                 message.style.color = 'red';
                 message.textContent = result.detail || 'Error en login';
