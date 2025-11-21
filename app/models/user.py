@@ -4,7 +4,7 @@ from .base import Base
 from app.models.user_role import user_role
 from passlib.context import CryptContext
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 class User(Base):
     __tablename__ = 'users'

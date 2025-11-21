@@ -3,6 +3,7 @@ from jose import JWTError, jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer
 from app.config.database import get_db
+from sqlalchemy.orm import Session
 
 
 auth_scheme = HTTPBearer()

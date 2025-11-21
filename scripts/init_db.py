@@ -5,7 +5,12 @@ from app.models.role import Role
 from app.models.permission import Permission
 from passlib.context import CryptContext
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    """Trunca a 72 bytes y genera el hash con bcrypt."""
+    password_bytes = password.encode("utf-8")[:72]
+    return pwd_context.hash(password_bytes)
 
 def init_db():
     print("🧨 Eliminando tablas anteriores...")
@@ -51,7 +56,7 @@ def init_db():
         user_obj = User(
             username=u["username"],
             email=u["email"],
-            password_hash=pwd_context.hash("123")
+            password_hash=hash_password("123")  # aquí se trunca y hashea
         )
         for role_name in u["roles"]:
             role_obj = db.query(Role).filter_by(name=role_name).first()
@@ -62,6 +67,7 @@ def init_db():
     db.close()
 
     print("✅ Base de datos lista.")
+
 
 if __name__ == "__main__":
     init_db()

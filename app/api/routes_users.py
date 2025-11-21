@@ -8,15 +8,10 @@ from app.schemas.user_schema import UserCreate, UserResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from app.utils.auth import create_access_token
 from fastapi import Body
+from app.config.database import get_db
+
 
 router = APIRouter(prefix="/users", tags=["Users"])
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("/login")
