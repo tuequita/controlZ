@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Torre Z - Login</title>
@@ -34,7 +35,8 @@
             color: #333;
         }
 
-        input[type="email"], input[type="password"] {
+        input[type="email"],
+        input[type="password"] {
             width: 100%;
             padding: 12px;
             margin: 10px 0 20px 0;
@@ -43,7 +45,8 @@
             transition: all 0.3s;
         }
 
-        input[type="email"]:focus, input[type="password"]:focus {
+        input[type="email"]:focus,
+        input[type="password"]:focus {
             border-color: #74ebd5;
             outline: none;
             box-shadow: 0 0 8px rgba(116, 235, 213, 0.5);
@@ -71,6 +74,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="login-container">
         <h1>Torre Z</h1>
@@ -101,10 +105,14 @@
 
             const result = await response.json();
 
-            if(response.ok){
+            if (response.ok) {
                 message.style.color = 'green';
                 localStorage.setItem('token', result.access_token);
-                window.location.href = "/"; 
+
+                localStorage.setItem("role", result.role);
+                localStorage.setItem("username", result.username);
+
+                window.location.href = "/dashboard/admin/";
             } else {
                 message.style.color = 'red';
                 message.textContent = result.detail || 'Error en login';
@@ -112,4 +120,5 @@
         });
     </script>
 </body>
+
 </html>
