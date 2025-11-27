@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.models.base import Base
-from app.core.config import settings  # <- usamos tu Settings
+from app.core.config import settings
 
 # Conexión a MySQL usando DATABASE_URL de tu config
 engine = create_engine(

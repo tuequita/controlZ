@@ -1,2 +1,187 @@
-<h1>Bienvenido Admin, {{ user.username }}</h1>
-<p>Tu email: {{ user.email }}</p>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Administrador</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: #1e3a5f;
+      color: white;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .menu button {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: white;
+      text-align: left;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .menu button:hover {
+      background: #27476d;
+    }
+
+    /* Main area */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .search-box {
+      background: #e8e8e8;
+      padding: 8px 12px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 300px;
+    }
+
+    .search-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      width: 100%;
+    }
+
+    .user-area {
+      position: relative;
+    }
+
+    .user-button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: #e8e8e8;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .user-menu {
+      position: absolute;
+      right: 0;
+      top: 50px;
+      background: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      border-radius: 10px;
+      overflow: hidden;
+      width: 170px;
+      display: none;
+      flex-direction: column;
+    }
+
+    .user-menu button {
+      background: white;
+      border: none;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .user-menu button:hover {
+      background: #f0f0f0;
+    }
+
+    /* Content */
+    .content {
+      padding: 25px;
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="logo">Torrez</div>
+
+    <div class="menu">
+      <button onclick="event.preventDefault()">👤 Gestión de Usuarios</button>
+      <button onclick="event.preventDefault()">🏢 Gestión de Propiedades</button>
+      <button onclick="event.preventDefault()">💰 Pagos del Edificio</button>
+      <button onclick="event.preventDefault()">📊 Reportes</button>
+      <button onclick="event.preventDefault()">🧾 Registrar Pago de un Depa</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div class="search-box">
+        🔍<input type="text" placeholder="Buscar..." />
+      </div>
+
+      <div class="user-area">
+        <div class="user-button" onclick="toggleUserMenu()">
+          👤 admin@torrez.com
+        </div>
+
+        <div id="userMenu" class="user-menu">
+          <button onclick="event.preventDefault()">Mi Cuenta</button>
+          <button onclick="event.preventDefault()">Cerrar Sesión</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <h1 style="margin-bottom:10px; font-size:24px;">Panel del Administrador</h1>
+      <p style="color:#555;">Aquí se mostrarán datos, gráficos y accesos rápidos.</p>
+    </section>
+  </main>
+
+  <script>
+    function toggleUserMenu() {
+      const menu = document.getElementById("userMenu");
+      menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+    }
+
+    document.addEventListener("click", function (e) {
+      const menu = document.getElementById("userMenu");
+      const userBtn = document.querySelector(".user-button");
+      if (!userBtn.contains(e.target) && !menu.contains(e.target)) {
+        menu.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
