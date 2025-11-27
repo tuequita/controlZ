@@ -16,6 +16,13 @@ class User(Base):
     is_active = Column(Boolean, default=True)
 
     roles = relationship('Role', secondary=user_role, back_populates='users')
+    
+    property_links = relationship("PropertyUsers", back_populates="user")
+
+    @property
+    def properties(self):
+        from .property_users import PropertyUsers  # import local
+        return [link.property for link in self.property_links]
 
     def __repr__(self):
         return f"<User(username={self.username})>"
