@@ -15,7 +15,7 @@ def admin_dashboard(request: Request, user=Depends(get_current_user)):
         "user": user,
     })
 
-@router.get("/pagos/nuevo")
+@router.get("/payment/new")
 def admin_payment(request: Request, user=Depends(get_current_user)):
     if not any(role.name == "admin" for role in user.roles):
         raise HTTPException(status_code=403, detail="Acceso restringido a administradores")

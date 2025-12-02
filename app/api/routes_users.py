@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends, Body
 from app.config.database import SessionLocal
 from app.schemas.user_schema import UserCreate, UserResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from app.utils.auth import create_access_token
 from app.config.database import get_db
 from app.utils.auth import get_current_user
@@ -56,3 +56,9 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+@router.get("/logout")
+def logout():
+    response = RedirectResponse(url="/login", status_code=302)
+    response.delete_cookie("access_token")
+    return response

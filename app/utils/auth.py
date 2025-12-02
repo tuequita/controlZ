@@ -6,6 +6,7 @@ from app.config.database import get_db
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.user import User
+from fastapi import Request
 
 
 auth_scheme = HTTPBearer()
@@ -52,6 +53,43 @@ def get_current_user(
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
     
+    return user
+
+def get_user_from_request(request: Request, db: Session):
+    """
+    Devuelve el usuario autenticado o None.
+    NO lanza excepción.
+    """
+    token = None
+
+    # 1) Intentar leer header Authorization
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.replace("Bearer ", "")
+
+    # 2) Si no hay, intentar con cookie
+    if not token:
+        cookie_token = request.cookies.get("access_token")
+        if cookie_token:
+            if cookie_token.startswith("Bearer "):
+                token = cookie_token.replace("Bearer ", "")
+            else:
+                token = cookie_token
+
+    if not token:
+        return None
+
+    # 3) Intentar decodificar JWT
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        email = payload.get("sub")
+        if not email:
+            return None
+    except JWTError:
+        return None
+
+    # 4) Buscar user en DB
+    user = db.query(User).filter(User.email == email).first()
     return user
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
