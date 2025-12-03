@@ -1,8 +1,12 @@
+
+
 from .user import User
+from .role import Role
+from .permission import Permission
+from .building import Building
 from .property import Property
 from .property_users import PropertyUsers
 from sqlalchemy.orm import relationship
-
 
 # Ahora que todas las clases existen, podemos definir las relaciones
 User.property_links = relationship("PropertyUsers", back_populates="user")

@@ -1,23 +1,34 @@
-from sqlalchemy import Column, Integer, String, DateTime, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from .base import Base
 from datetime import datetime
 
 class Property(Base):
-    __tablename__ = 'properties'
+    __tablename__ = "properties"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
-    address = Column(String(255), nullable=True)
+
+    # Nombre interno del departamento (ej: "6H", "4A")
+    name = Column(String(50), nullable=False)
+
+    # Metros cuadrados, habitaciones, nota, etc.
+    area_m2 = Column(Integer, nullable=True)
+    bedrooms = Column(Integer, nullable=True)
+    description = Column(String(255), nullable=True)
+
     code = Column(String(50), unique=True, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    #payments = relationship('Payment', back_populates='property')
+    # Relación con edificio
+    building_id = Column(Integer, ForeignKey("buildings.id"), nullable=False)
+    building = relationship("Building", back_populates="units")
+
+    # Si mantienes la tabla PropertyUsers para múltiples dueños
     property_links = relationship("PropertyUsers", back_populates="property")
+
     @property
     def users(self):
-        from .property_users import PropertyUsers  # import local aquí
         return [link.user for link in self.property_links]
 
     def __repr__(self):
-        return f"<Property(name={self.name}, code={self.code})>"
+        return f"<Property(name={self.name}, building_id={self.building_id})>"

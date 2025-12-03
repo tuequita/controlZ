@@ -3,14 +3,37 @@ from app.config.database import Base, engine, SessionLocal
 from app.models.user import User
 from app.models.role import Role
 from app.models.permission import Permission
+from app.models.building import Building
+from app.models.property import Property
+from app.models.property_users import PropertyUsers
+
 from passlib.context import CryptContext
+import random
+import string
+from datetime import datetime
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 def hash_password(password: str) -> str:
-    """Trunca a 72 bytes y genera el hash con bcrypt."""
     password_bytes = password.encode("utf-8")[:72]
     return pwd_context.hash(password_bytes)
+
+# ---------------------------------------------------------
+# GENERADORES AUXILIARES
+# ---------------------------------------------------------
+
+def random_email():
+    return ''.join(random.choices(string.ascii_lowercase, k=8)) + "@demo.com"
+
+def random_username():
+    return ''.join(random.choices(string.ascii_lowercase, k=8))
+
+def create_property_name(floor, letter):
+    return f"{floor}{letter}"
+
+# ---------------------------------------------------------
+# SEED PRINCIPAL
+# ---------------------------------------------------------
 
 def init_db():
     print("🧨 Eliminando tablas anteriores...")
@@ -21,6 +44,9 @@ def init_db():
 
     db: Session = SessionLocal()
 
+    # ---------------------------------------------------------
+    # ROLES
+    # ---------------------------------------------------------
     print("➕ Insertando roles...")
     roles = [
         Role(name="admin"),
@@ -31,6 +57,9 @@ def init_db():
     ]
     db.add_all(roles)
 
+    # ---------------------------------------------------------
+    # PERMISOS
+    # ---------------------------------------------------------
     print("➕ Insertando permisos...")
     permissions = [
         Permission(name="user:create"),
@@ -41,33 +70,162 @@ def init_db():
         Permission(name="role:delete"),
     ]
     db.add_all(permissions)
+
     db.commit()
 
-    print("👤 Creando usuarios de prueba...")
-    test_users = [
-        {"username": "admin", "email": "admin@controlz.com", "roles": ["admin"]},
-        {"username": "mesa1", "email": "mesa1@controlz.com", "roles": ["mesa_directiva"]},
-        {"username": "prop1", "email": "prop1@controlz.com", "roles": ["propietario"]},
-        {"username": "inq1", "email": "inq1@controlz.com", "roles": ["inquilino"]},
-        {"username": "cons1", "email": "cons1@controlz.com", "roles": ["conserje"]},
-    ]
+    # ---------------------------------------------------------
+    # EDIFICIO
+    # ---------------------------------------------------------
+    print("🏢 Creando edificio Torre Z...")
 
-    for u in test_users:
-        user_obj = User(
-            username=u["username"],
-            email=u["email"],
-            password_hash=hash_password("123")  # aquí se trunca y hashea
+    building = Building(
+        name="Torre Z",
+        address="Carrer Lope de Vega 25, Poblenou, Barcelona",
+        code="TZ-001",
+        created_at=datetime.utcnow()
+    )
+    db.add(building)
+    db.commit()
+
+    # ---------------------------------------------------------
+    # DEPARTAMENTOS
+    # ---------------------------------------------------------
+    print("🏠 Generando departamentos...")
+
+    letters = list("ABCDEFGHIJ")
+    properties = []
+
+    property_count = 0
+
+    for floor in range(1, 15):  # pisos 1 → 14
+        for letter in letters:
+            # Piso 14 solo tiene 8 departamentos → A a H
+            if floor == 14 and letter in ["I", "J"]:
+                continue
+
+            unit = Property(
+                name=create_property_name(floor, letter),
+                area_m2=random.choice([60, 70, 80, 85, 90]),
+                bedrooms=random.choice([1, 2, 3]),
+                description="Unidad generada para demo",
+                code=f"DPT-{floor}{letter}",
+                building_id=building.id
+            )
+            db.add(unit)
+            properties.append(unit)
+            property_count += 1
+
+    db.commit()
+    print(f"🏠 Total departamentos creados: {property_count}")
+
+    # ---------------------------------------------------------
+    # USUARIOS ESPECIALES
+    # ---------------------------------------------------------
+
+    print("👤 Creando usuarios administradores...")
+    admins = []
+    for i in range(3):
+        u = User(
+            username=f"admin{i}",
+            email=f"admin{i}@controlz.com",
+            password_hash=hash_password("123")
         )
-        for role_name in u["roles"]:
-            role_obj = db.query(Role).filter_by(name=role_name).first()
-            user_obj.roles.append(role_obj)
-        db.add(user_obj)
+        u.roles.append(db.query(Role).filter_by(name="admin").first())
+        admins.append(u)
+        db.add(u)
+
+    print("👤 Creando mesa directiva...")
+    mesa = []
+    for i in range(5):
+        u = User(
+            username=f"mesa{i}",
+            email=f"mesa{i}@controlz.com",
+            password_hash=hash_password("123")
+        )
+        u.roles.append(db.query(Role).filter_by(name="mesa_directiva").first())
+        mesa.append(u)
+        db.add(u)
+
+    print("👤 Creando conserjes...")
+    cons = []
+    for i in range(3):
+        u = User(
+            username=f"cons{i}",
+            email=f"cons{i}@controlz.com",
+            password_hash=hash_password("123")
+        )
+        u.roles.append(db.query(Role).filter_by(name="conserje").first())
+        cons.append(u)
+        db.add(u)
 
     db.commit()
+
+    # ---------------------------------------------------------
+    # USUARIOS GENERALES (~400)
+    # ---------------------------------------------------------
+    print("👥 Creando 400 usuarios...")
+
+    all_users = []
+    propietario_role = db.query(Role).filter_by(name="propietario").first()
+    inquilino_role = db.query(Role).filter_by(name="inquilino").first()
+
+    for i in range(400):
+        username = random_username()
+        user = User(
+            username=username,
+            email=random_email(),
+            password_hash=hash_password("123")
+        )
+        # Asignación aleatoria de rol general
+        user.roles.append(random.choice([propietario_role, inquilino_role]))
+        db.add(user)
+        all_users.append(user)
+
+    db.commit()
+
+    # ---------------------------------------------------------
+    # ASIGNAR USUARIOS A PROPIEDADES
+    # ---------------------------------------------------------
+    print("🔗 Asignando usuarios a propiedades...")
+
+    all_users_db = db.query(User).all()
+    all_properties_db = db.query(Property).all()
+
+    # Tomamos solo usuarios propietarios e inquilinos
+    propietarios_list = [u for u in all_users_db if any(r.name == "propietario" for r in u.roles)]
+    inquilinos_list = [u for u in all_users_db if any(r.name == "inquilino" for r in u.roles)]
+
+    random.shuffle(propietarios_list)
+    random.shuffle(inquilinos_list)
+
+    # 100 departamentos tendrán propietario
+    for i, prop in enumerate(all_properties_db[:100]):
+        owner = propietarios_list[i]
+        link = PropertyUsers(
+            user_id=owner.id,
+            property_id=prop.id,
+            role="owner"
+        )
+        db.add(link)
+
+        # La mitad tendrá además inquilino
+        if i % 2 == 0 and len(inquilinos_list) > i:
+            tenant = inquilinos_list[i]
+            link2 = PropertyUsers(
+                user_id=tenant.id,
+                property_id=prop.id,
+                role="tenant"
+            )
+            db.add(link2)
+
+    db.commit()
+
+    print("✅ DEMO COMPLETA: edificio, departamentos, usuarios y relaciones cargadas.")
     db.close()
 
-    print("✅ Base de datos lista.")
-
+# ---------------------------------------------------------
+# EJECUTAR SEED
+# ---------------------------------------------------------
 
 if __name__ == "__main__":
     init_db()
