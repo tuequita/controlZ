@@ -1,0 +1,6 @@
+sudo service mariadb start
+sudo apt install -y bash-completion
+source /etc/bash_completion
+echo 'source /etc/bash_completion' >> ~/.bashrc
+source venv/bin/activate
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
