@@ -59,6 +59,11 @@
 </style>
 {% endblock %}
 
+{% set months = {
+    1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+    5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+    9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+} %}
 
 {% block content %}
 <h1 class="page-title">Registrar Pago</h1>
@@ -66,9 +71,10 @@
 <div class="card">
     <form id="registerPaymentForm">
 
+        <!-- Propiedad -->
         <div class="form-group">
             <label>Propiedad:</label>
-            <select id="property">
+            <select id="property" required>
                 <option value="">-- Seleccione propiedad --</option>
                 {% for p in properties %}
                     <option value="{{ p.id }}">{{ p.name }}</option>
@@ -76,30 +82,67 @@
             </select>
         </div>
 
+        {% set months = {
+            1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+            5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+            9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+        } %}
+
+        <!-- Checkbox para registrar muchos pagos -->
         <div class="form-group">
-            <label>Mes:</label>
-            <select id="month">
-                {% for m in range(1,13) %}
-                    <option value="{{ m }}">{{ m }}</option>
-                {% endfor %}
-            </select>
+            <label>
+                <input type="checkbox" id="multiPayment"> Registrar muchos pagos
+            </label>
         </div>
 
-        <div class="form-group">
-            <label>Monto:</label>
-            <input type="number" step="0.01" />
+        <!-- Mes y Año principal -->
+        <div class="form-group" id="mainPaymentFields">
+            <label>Mes y Año del pago:</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <select id="month" required>
+                    {% for num, name in months.items() %}
+                        <option value="{{ num }}" {% if num == current_month %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+
+                <select id="year" required>
+                    {% for y in range(current_year - 5, current_year + 2) %}
+                        <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+
+                <!-- Mes y año extra (oculto hasta marcar checkbox) -->
+                <div id="multiPaymentFields" style="display:none; margin-left: 10px;">
+                    <select id="extra_month">
+                        {% for num, name in months.items() %}
+                            <option value="{{ num }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <select id="extra_year">
+                        {% for y in range(current_year - 5, current_year + 2) %}
+                            <option value="{{ y }}">{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
         </div>
 
+        <!-- Monto parcial -->
         <div class="form-group">
-            <label>Fecha de pago:</label>
-            <input type="date" />
+            <label>Monto a pagar:</label>
+            <input type="number" step="0.01" id="amount" placeholder="Ej: 150.00" />
+            <small>Puede pagar todo o solo una parte del mes.</small>
         </div>
 
+        <!-- Comprobantes -->
         <div class="form-group">
             <label>Comprobantes:</label>
             <input type="file" multiple accept="image/*" />
+            <div id="filePreview"></div>
         </div>
 
+        <!-- Notas -->
         <div class="form-group">
             <label>Notas:</label>
             <input type="text" />
@@ -108,4 +151,27 @@
         <button type="submit" class="submit-btn">Registrar Pago</button>
     </form>
 </div>
+
+<script>
+const inputFiles = document.querySelector('input[type="file"]');
+const preview = document.getElementById('filePreview');
+
+inputFiles.addEventListener('change', function() {
+    preview.innerHTML = '';
+    Array.from(this.files).forEach(file => {
+        const div = document.createElement('div');
+        div.textContent = file.name;
+        preview.appendChild(div);
+    });
+});
+
+// Mostrar/ocultar campos extra según checkbox
+const multiPaymentCheckbox = document.getElementById('multiPayment');
+const multiPaymentFields = document.getElementById('multiPaymentFields');
+
+multiPaymentCheckbox.addEventListener('change', () => {
+    multiPaymentFields.style.display = multiPaymentCheckbox.checked ? 'flex' : 'none';
+});
+</script>
+
 {% endblock %}

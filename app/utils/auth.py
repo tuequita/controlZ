@@ -99,3 +99,12 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+def require_permission(permission: str):
+    def checker(user: User = Depends(get_current_user)):
+        if not user.has_permission(permission):
+            raise HTTPException(
+                status_code=403,
+                detail="No tienes permisos suficientes"
+            )
+        return user
+    return checker

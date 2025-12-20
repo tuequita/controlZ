@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from .base import Base
 from app.models.user_role import user_role
 from passlib.context import CryptContext
+from app.core.dashboard import DASHBOARD_PAGES, ROLE_DASHBOARD_PAGES
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
@@ -40,3 +41,13 @@ class User(Base):
     def verify_password(self, password: str) -> bool:
         """Verifica si la contraseña proporcionada coincide con la almacenada"""
         return pwd_context.verify(password, self.password_hash)
+    
+    def dashboard_pages(self):
+        pages = set()
+
+        for role in self.roles:
+            role_pages = ROLE_DASHBOARD_PAGES.get(role.name, set())
+            pages.update(role_pages)
+
+        # Devuelve objetos DashboardPage
+        return [DASHBOARD_PAGES[key] for key in pages]

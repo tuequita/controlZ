@@ -3,6 +3,29 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1>Panel del Administrador</h1>
-<p>Aquí se mostrarán datos, gráficos y accesos rápidos.</p>
+<h1>Bienvenido, {{ user.username }}</h1>
+
+<h2>Roles asignados</h2>
+{% if user.roles %}
+    <ul>
+    {% for role in user.roles %}
+        <li>
+            <strong>{{ role.name }}</strong>
+            {% if role.description %}
+                – {{ role.description }}
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No tienes roles asignados.</p>
+{% endif %}
+
+<hr>
+
+<p>
+    Este es tu panel personal.  
+    El contenido que ves depende de tus permisos.
+</p>
+
 {% endblock %}

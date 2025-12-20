@@ -1,3 +1,5 @@
+sudo apt update
+sudo apt upgrade -y
 sudo service mariadb start
 sudo apt install -y bash-completion
 source /etc/bash_completion
